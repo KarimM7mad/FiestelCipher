@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <bitset>
+#include <fstream>
 
 using namespace std;
 #define numOfRounds 8
@@ -29,7 +30,8 @@ public:
     string result;
     string finalKeys[numOfRounds];
 
-    fiestel() {}
+    fiestel() {
+    }
 
     fiestel(string dataBlock, string keyBlock) {
         this->dataBlock = dataBlock;
@@ -41,14 +43,15 @@ public:
         cout << "-------------Keys generation Ended-------------------" << endl;
     }
 
-    void execute(string value,string key , bool modeToUse){
+    void execute(string value, string key, bool modeToUse) {
         this->dataBlock = value;
-        this->keyBlock=key;
+        this->keyBlock = key;
         this->generateKeys();
         this->execute(modeToUse);
     }
-    
+
     //boolean =1 for encrypt , zero for decrypt
+
     void execute(bool b) {
         string LEnext, REnext, LEcurr, REcurr, tmp;
         LEcurr = this->dataBlock.substr(0, 4);
@@ -79,7 +82,7 @@ public:
             REcurr = tmp;
             cout << "--------------------------End Encryption-------------------------------" << endl;
             cout << "cipher is " + (LEcurr + REcurr) << endl;
-            cout << "---------------------------------------------------------" << endl;        
+            cout << "---------------------------------------------------------" << endl;
         }
 
 
@@ -110,8 +113,8 @@ public:
             cout << "Original is " + (LEcurr + REcurr) << endl;
             cout << "---------------------------------------------------------" << endl;
         }
-        this->result = LEcurr+REcurr;
-        cout<<"RESULT is "+this->result<<endl;
+        this->result = LEcurr + REcurr;
+        cout << "RESULT is " + this->result << endl;
     }
 
     string functionF(string RE, string keyy) {
@@ -154,21 +157,40 @@ public:
 
 };
 
+string getTxtFromFile(string filename="input.txt"){
+    string x;
+    char tmp;
+    ifstream infile(filename);
+    while( !infile.eof() ){
+        infile.get(tmp);
+        x.append(1,tmp);
+    }
+    infile.close();
+    return x;
+}
+
+void saveToFile(string data,string filename="output.txt"){
+    ofstream outfile(filename);
+    outfile << data;
+    outfile.close();
+}
+
 int main() {
 
 
-    char dataEntered[9], keyEntered[9];
-
-    cout << "enter data (max 8 chars)" << endl;
-    cin.get(dataEntered, 9);
+    //    char dataEntered[9], keyEntered[9];
+    //
+    //    cout << "enter data (max 8 chars)" << endl;
+    //    cin.get(dataEntered, 9);
+    //    
+    //    cin.get();
+    //    
+    //    cout << "enter key (max 8 chars)" << endl;
+    //    cin.get(keyEntered, 9);
+    //    
+    //    fiestel f(dataEntered, keyEntered);
     
-    cin.get();
     
-    cout << "enter key (max 8 chars)" << endl;
-    cin.get(keyEntered, 9);
-    
-    
-    fiestel f(dataEntered, keyEntered);
     
     return 0;
 }

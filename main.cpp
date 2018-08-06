@@ -8,11 +8,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <bitset>
+
 using namespace std;
 #define numOfRounds 8
 
 int generateRandomInteger(int max) {
-
     srand((unsigned) time(0));
     int x;
     for(int i = 0; i < 100; i++)
@@ -26,90 +26,92 @@ private:
 public:
     string dataBlock;
     string keyBlock;
-    string finalKeys[8];
+    string result;
+    string finalKeys[numOfRounds];
 
-    fiestel() {
-
-    }
+    fiestel() {}
 
     fiestel(string dataBlock, string keyBlock) {
         this->dataBlock = dataBlock;
         this->keyBlock = keyBlock;
+        cout << "-------------Process Started-------------------" << endl;
+        //generate round keys
+        cout << "-------------Keys generation Started-------------------" << endl;
+        this->generateKeys();
+        cout << "-------------Keys generation Ended-------------------" << endl;
     }
 
-    void execute() {
+    void execute(string value,string key , bool modeToUse){
+        this->dataBlock = value;
+        this->keyBlock=key;
         this->generateKeys();
+        this->execute(modeToUse);
+    }
+    
+    //boolean =1 for encrypt , zero for decrypt
+    void execute(bool b) {
         string LEnext, REnext, LEcurr, REcurr, tmp;
         LEcurr = this->dataBlock.substr(0, 4);
         REcurr = this->dataBlock.substr(4, 4);
-        cout << "---------------------------------------------------------" << endl;
-        for(int i = 0; i < 8; i++) {
 
-            LEnext = REcurr;
-            cout << "value|" + LEnext + "|" << endl;
-            cout << "key|" + (this->finalKeys[i]) + "|" << endl;
-
-            tmp = functionF(REcurr, this->finalKeys[i]);
-
-
-            for(int ii = 0; ii < 4; ii++) {
-                REnext.append(1, tmp[ii] ^ LEcurr[ii]);
+        if(b) {
+            cout << "-------------Start Encryption-------------------------" << endl;
+            for(int i = 0; i < numOfRounds; i++) {
+                LEnext = REcurr;
+                cout << "LEnext|" + LEnext + "|" << endl;
+                cout << "key|" + (this->finalKeys[i]) + "|" << endl;
+                tmp = functionF(REcurr, this->finalKeys[i]);
+                for(int ii = 0; ii < 4; ii++) {
+                    REnext.append(1, tmp[ii] ^ LEcurr[ii]);
+                }
+                cout << "REnext|" + REnext + "|" << endl;
+                cout << "---------------------------------------------------------" << endl;
+                //clear all that will be used in order to use them for the other loops
+                tmp = "";
+                LEcurr = LEnext;
+                LEnext = "";
+                REcurr = REnext;
+                REnext = "";
             }
-            cout << "cipher|" + REnext + "|" << endl;
-            cout << "---------------------------------------------------------" << endl;
-
-            tmp = "";
-
-            LEcurr = LEnext;
-            LEnext = "";
-
-            REcurr = REnext;
-            REnext = "";
-        }
-
-        cout << "--------------------------after Encryption-------------------------------" << endl;
-
-        tmp = LEcurr;
-        LEcurr = REcurr;
-        REcurr = tmp;
-        cout << LEcurr + REcurr << endl;
-
-        cout << "---------------------------------------------------------" << endl;
-
-
-        for(int i = 7; i >= 0; i--) {
-
-            LEnext = REcurr;
-            cout << "LEnext|" + LEnext + "|" << endl;
-            cout << "key|" + (this->finalKeys[i]) + "|" << endl;
-
-            tmp = functionF(REcurr, this->finalKeys[i]);
-
-
-            for(int ii = 0; ii < 4; ii++) {
-                REnext.append(1, tmp[ii] ^ LEcurr[ii]);
-            }
-            cout << "REnext|" + REnext + "|" << endl;
-            cout << "---------------------------------------------------------" << endl;
-
-            tmp = "";
-
-            LEcurr = LEnext;
-            LEnext = "";
-
-            REcurr = REnext;
-            REnext = "";
+            //swap LE and RE after rounds finish
+            tmp = LEcurr;
+            LEcurr = REcurr;
+            REcurr = tmp;
+            cout << "--------------------------End Encryption-------------------------------" << endl;
+            cout << "cipher is " + (LEcurr + REcurr) << endl;
+            cout << "---------------------------------------------------------" << endl;        
         }
 
 
-        cout << "--------------------------after decryption-------------------------------" << endl;
-
-        tmp = LEcurr;
-        LEcurr = REcurr;
-        REcurr = tmp;
-        cout << LEcurr + REcurr << endl;
-
-
+        else if(!b) {
+            cout << "-------------Start Decryption-------------------------" << endl;
+            for(int i = 7; i >= 0; i--) {
+                LEnext = REcurr;
+                cout << "LEnext|" + LEnext + "|" << endl;
+                cout << "key|" + (this->finalKeys[i]) + "|" << endl;
+                tmp = functionF(REcurr, this->finalKeys[i]);
+                for(int ii = 0; ii < 4; ii++) {
+                    REnext.append(1, tmp[ii] ^ LEcurr[ii]);
+                }
+                cout << "REnext|" + REnext + "|" << endl;
+                cout << "---------------------------------------------------------" << endl;
+                //clear all that will be used in order to use them for the other loops
+                tmp = "";
+                LEcurr = LEnext;
+                LEnext = "";
+                REcurr = REnext;
+                REnext = "";
+            }
+            //swap after the last round
+            tmp = LEcurr;
+            LEcurr = REcurr;
+            REcurr = tmp;
+            cout << "--------------------------End Decryption-------------------------------" << endl;
+            cout << "Original is " + (LEcurr + REcurr) << endl;
+            cout << "---------------------------------------------------------" << endl;
+        }
+        this->result = LEcurr+REcurr;
+        cout<<"RESULT is "+this->result<<endl;
     }
 
     string functionF(string RE, string keyy) {
@@ -120,12 +122,11 @@ public:
         cout << "stringInF|" + (s) + "|" << endl;
         return s;
     }
-
     //random keys generator
 
     void generateKeys() {
         string s = this->keyBlock;
-        string keys[8];
+        string keys[numOfRounds];
         keys[0] = this->keyBlock;
         int numberOfSwapTimes, numberOfSwapPlaces;
         //number of keys = no of rounds =8
@@ -140,14 +141,13 @@ public:
                 for(int v = 0; v < 29000000; v++) {
                 }
                 numberOfSwapPlaces = generateRandomInteger(8);
-                //repeating swaps according to number of swaps , and aslo defining swap positions.
+                //repeating swaps according to number of swaps , and also defining swap positions.
                 for(int k = numberOfSwapPlaces; k < s.size(); k++) {
                     swap(s[k - numberOfSwapPlaces], s[k]);
                 }
             }
             keys[i] = s;
         }
-
         for(int i = 0; i < numOfRounds; i++)
             this->finalKeys[i] = keys[i].substr(2, 4);
     }
@@ -157,15 +157,19 @@ public:
 int main() {
 
 
-    char dataEntered[9];
+    char dataEntered[9], keyEntered[9];
 
     cout << "enter data (max 8 chars)" << endl;
     cin.get(dataEntered, 9);
-    cout << endl;
-    fiestel f(dataEntered, "abcdefgh");
-    f.execute();
-
-
+    
+    cin.get();
+    
+    cout << "enter key (max 8 chars)" << endl;
+    cin.get(keyEntered, 9);
+    
+    
+    fiestel f(dataEntered, keyEntered);
+    
     return 0;
 }
 

@@ -1,5 +1,5 @@
-# fiestelCipher
-It is required to build a Fiestel type symetric block cipher 
+# FiestelCipher
+a C++ Implementaion of a Fiestel type symetric block cipher with constraints as follow: 
 1. The cipher should be 8 rounds 
 2. The block size is 64 bits 
 3. The key size is also 64 bits 
